@@ -4,12 +4,44 @@ Code for the Raspberry Pi facilitating autonomous sailing logic
 This file should contain documentation for the Raspberry Pi code.
 
 ## How to setup dev environment
-_Add virtualenv instructions here_
+### Setting up for the first time
+To read more about virtual environments, read [this](https://docs.python.org/3/library/venv.html).
+
+1. Run this command:
+`python3 -m venv env`
+
+It will create a folder called "env" and the contents will be a bunch of bunch of python binaries. This is where your virtual environment lives.
+
+2. Run this command:
+`pip3 install -r requirements.txt`
+
+This will install all required libraries.
+
+As long as you don't delete the "env" folder, you only need to follow the instructions in this section once.
+
+### Starting the program
+
+1. On UNIX/Linux, run this:
+`source env/bin/activate.bash`
+
+On windows cmd, run this:
+`env\Scripts\activate.bat`
+
+On windows PS, run this:
+`env\Scripts\Activate.ps1`
+
+Now, your virtual environment has been activated. You are free to start running code without running into issues.
 
 To start the program, run:
 `python3 rpi_main.py`
 
 Two threads will be spawned. The first thread is a daemon that reads from the serial port and updates the state. The second (main) thread reads from the state and will send messages to the boat.
+
+### Running tests
+
+To run tests, go into the test/directory and run:
+
+`python3 -m unittest discover .`
 
 ## Class overview
 ![class-diagram](./img/class_diagram_v1.png)
