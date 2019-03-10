@@ -13,7 +13,7 @@ if __name__ == "__main__":
             stream=sys.stdout, level=logging.DEBUG)
 
     # Define settings for the serial port
-    serial_port = "/dev/tty.Bluetooth-Incoming-Port"
+    serial_port = "/dev/ttyACM0"
     baudrate = 9600
     bytesize = serial.EIGHTBITS
     parity = serial.PARITY_NONE

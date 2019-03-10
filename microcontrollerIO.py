@@ -55,6 +55,7 @@ class SerialReader:
         self.buffer_size = 128
         self.state = state
 
+
     def listen(self):
         """
         Listens for a single message in the form XXMESSAGE; from the provided
@@ -64,14 +65,8 @@ class SerialReader:
         subject = self.port.read(2)
 
         # Read the message into the buffer
-        bytes_read = self._read_until_semicolon()
-        if bytes_read == -1:
-            logging.info(
-                "Recieved message does not terminate: '{}'"
-                .format(self.buffer))
-            return
-
-        self.state.handle_message(subject, self.buffer[:bytes_read])
+        buffer = self.port.read_until(b';')
+        self.state.handle_message(buffer[:2], buffer[2:-1])
 
 
 def startSerialReader(port, state):
