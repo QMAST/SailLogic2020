@@ -22,7 +22,7 @@ class Controller:
         logging.info("Actuating rudder: {}".format(value))
         self.writer.write(b'SR', str(value).encode('utf-8'))
     def simple_write(self, subject, value):
-        logging.info("Writing stuff!")
+        # Literally just pass messages transparently to the Mega over XBee
         self.writer.write(subject, str(value).encode('utf-8'))
 
 
@@ -38,6 +38,7 @@ def startAutomaticControl(state):
 
     logging.info("Starting automatic control thread.")
     controller = Controller(state.writer)
+    simple_write("00", "1"): # Preemptively announce to Mega that you're online
 
     extreme = True
 

@@ -43,9 +43,11 @@ class State:
     def __init__(self, writer):
         self.is_gps_online = False
         self.gps_coordinates = (0, 0)
+        self.gps_speed = 0
         self.compass_angle = 0
         self.temperature = 0
         self.windvane_angle = 0
+        self.wind_speed = 0
         self.pixy_location = 0
         self.mega_state = 0
         self.critical_failure = False
@@ -57,9 +59,11 @@ class State:
         # The handling for the A2, A3 commands are not implemented yet
         self.callbacks = {
                 b'GP': self._handle_GPS,
+                b'SP': self._handle_GPS_speed,
                 b'CP': self._handle_compass,
                 b'TM': self._handle_temperature,
                 b'WV': self._handle_windvane,
+                b'WS': self._handle_wind_speed,
                 b'PX': self._handle_pixy,
                 b'LD': self._handle_lidar,
                 b'00': self._handle_device_mode,
@@ -93,6 +97,10 @@ class State:
             x, y = message.split(b',')
             self.gps_coordinates = (float(x), float(y))
 
+    def _handle_GPS_speed(self, message):
+        logging.info("Recieved boat speed: {}".format(message))
+        self.gps_speed = float(message)
+
     def _handle_compass(self, message):
         logging.info("Recieved compass angle: {}".format(message))
         self.compass_angle = float(message)
@@ -104,6 +112,10 @@ class State:
     def _handle_windvane(self, message):
         logging.info("Recieved windvane angle: {}".format(message))
         self.windvane_angle = float(message)
+
+    def _handle_wind_speed(self, message):
+        logging.info("Recieved windspeed: {}".format(message))
+        self.wind_speed = float(message)
 
     def _handle_pixy(self, message):
         logging.info("Recieved pixy location: {}".format(message))
