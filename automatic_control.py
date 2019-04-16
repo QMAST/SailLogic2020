@@ -20,7 +20,10 @@ class Controller:
     def actuate_rudder(self, value):
         assert 0 <= value <= 180
         logging.info("Actuating rudder: {}".format(value))
-        self.writer.write(b'00', str(value).encode('utf-8'))
+        self.writer.write(b'SR', str(value).encode('utf-8'))
+    def simple_write(self, subject, value):
+        logging.info("Writing stuff!")
+        self.writer.write(subject, str(value).encode('utf-8'))
 
 
 def startAutomaticControl(state):
@@ -36,11 +39,25 @@ def startAutomaticControl(state):
     logging.info("Starting automatic control thread.")
     controller = Controller(state.writer)
 
+    extreme = True
+
     while True:
         if state.rpi_autopilot_enabled:
+            if extreme == True:
+                controller.actuate_rudder(0)
+                extreme = False
+            else:
+                controller.actuate_rudder(180)
+                extreme = True
+
             # Do something. E.g.
             #
             # controller.actuate_winch(22)
             pass
+        else:
+            # Put into autopilot
+            #logging.info("Not in Autopilot.")
+            #controller.simple_write(b'A0', "1")
+            pass
 
-        time.sleep(0.5)
+        time.sleep(2)

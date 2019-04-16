@@ -115,10 +115,15 @@ class State:
 
     def _handle_device_mode(self, message):
         logging.info("Recieved device mode from mega: {}".format(message))
+
+        
+        
         if message == b'?':
             logging.info("Sending alive state to mega")
             self.writer.write(b'00', b'1')
         else:
+            # If message == 2 mega in autopilot
+            self.rpi_autopilot_enabled = int(message) == 2
             self.mega_state = int(message)
 
     def _handle_mega_powering_on(self, message):
@@ -131,6 +136,10 @@ class State:
 
     def _handle_rpi_autopilot_enable(self, message):
         logging.info("Recieved autopilot enable command: {}".format(message))
+        # Confirm autopilot enable if ready
+        if int(message) == 1:
+            self.writer.write(b'A0', b'1')
+            
         self.rpi_autopilot_enabled = int(message) == 1
 
     def _handle_rpi_autopilot_mode(self, message):

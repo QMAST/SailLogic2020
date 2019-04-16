@@ -26,9 +26,12 @@ class ThreadsafeSerialWriter:
 
             message (bytes): The message itself.
         """
+    
         try:
             self.lock.acquire()
             self.port.write(subject + message + b';')
+        except:
+            logging.info("> WRITE FAILED <")
         finally:
             self.lock.release()
 
