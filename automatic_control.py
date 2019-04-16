@@ -38,7 +38,7 @@ def startAutomaticControl(state):
 
     logging.info("Starting automatic control thread.")
     controller = Controller(state.writer)
-    simple_write("00", "1"): # Preemptively announce to Mega that you're online
+    controller.simple_write("00", "1") # Preemptively announce to Mega that you're online
 
     extreme = True
 
