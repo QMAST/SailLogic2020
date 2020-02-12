@@ -1,6 +1,26 @@
 import logging
+from enum import Enum
 import time
 
+class POS(Enum):
+    irons = 0
+    closeHauld = 1
+    closeReach = 2
+    beamReach = 3
+    broadReach = 4
+    run = 5
+    lee = 6
+
+#The big idea here is that we can use these statics to 
+#loop the gyb() method while tracking if we have crossed 
+#wind or not and check if the gyb command has changed.
+class GybControl:
+    #desired is used to track if the gyb heading has been updated.
+    desired = -1
+    #start is used to determine the starting heading of this gyb command.
+    #Used in gyb() to determine if we have crossed wind or not.
+    start = -1
+gybStatics = GybControl()
 
 class Controller:
     """
@@ -62,3 +82,48 @@ def startAutomaticControl(state):
             pass
 
         time.sleep(2)
+#Desired Heading tells us the direction we want to be going in.
+def gybe(desiredHeading):
+
+    #If this is the first gyb command, or an updated gyb heading,
+    #then update the gyb statics so we can check crossed wind.
+    if (gybStatics.desired == -1 or desiredHeading != gybStatics.desired):
+        gybStatics.desired = desiredHeading
+        gybStatics.start = getCurrentRelativeHeading()
+
+    #This tells us the direction we're heading in. Compass coordinates. (?)
+    currentHeading = getCurrentHeading()
+    #This is and enum (?) that gives our current POS.
+    currentPOS = pointOfSail()
+
+    if (currentPOS != POS.run and currentPOS == POS.closeHauld):
+        #Tack and bear off.
+        tack()
+        #paramaters to rudder straight might need tuning.
+        bearOff(desiredHeading, onStarboard(), 0, \
+             (currentHeading < 195 and currentHeading > 180))
+    else:
+        #Check if we have crossed wind.
+            #I think that crossing wind means we moved from pointing left of the direction 
+            #of wind to the right of the direction of the wind or vice versa. That could
+            #be completely wrong, I have no idea.
+        if ((getCurrentRelativeHeading() > 180) and (gybStatics.start < 180)) or \
+           ((getCurrentRelativeHeading() < 180) and (gybStatics.start > 180)):
+            if (headingCourse(desiredHeading) == POS.run):
+                #let out sail, straighten out
+                rudderStraight()
+                sailsOut()
+
+            else:
+                #hold rudder, head up
+                headUp(desiredHeading, onStarboard(), 0, 0)
+
+        else:
+            #pull in, tilt 45.
+            #Theres a sails out function but not sails in, so i just jammed this together.
+            if onStarboard():
+                sails(180)
+            else:
+                sails(0)
+            rudderLeeward(45)
+
