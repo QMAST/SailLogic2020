@@ -21,6 +21,11 @@ class GybControl:
     #Used in gyb() to determine if we have crossed wind or not.
     start = -1
 gybStatics = GybControl()
+#Constants for lay line.
+#Frequency you want to tune waitForLayLine() with.
+LAYDELAY = 2
+#How close you want to get to the way point before quitting.
+LAYPRECISION = 5
 
 class Controller:
     """
@@ -127,3 +132,25 @@ def gybe(desiredHeading):
                 sails(0)
             rudderLeeward(45)
 
+
+
+def waitForLayLine():
+    #Get heading at start of path, this is our lay line we 
+    #want to follow.
+    headingPOS = pointOfSail(getCurrentHeading())
+    heading = getCurrentHeading()
+
+    #Until we reach the waypoint, keep correcting course to 
+    #stay on lay line.
+    #We need a way to know if we're there or not. How do I get GPS?
+    while((getCurrentPosition - wayPointPosition) > LAYPRECISION):
+        #Check if we need a correction.
+        if(pointOfSail(getCurrentHeading()) != headingPOS):
+                switchTack(heading)
+        else
+            #Just keep cruisin, do I even need this?
+            sailsOut()
+            rudderStraight()
+        #Wait to refresh.
+        time.sleep(LAYDELAY)
+                      
