@@ -1,4 +1,6 @@
 import logging
+import datetime
+import math
 
 
 class State:
@@ -43,6 +45,7 @@ class State:
     def __init__(self, writer):
         self.is_gps_online = False
         self.gps_coordinates = (0, 0)
+        self.prev_gps_coordinates = (0,0,0) #only necessary if GPS does not give speed
         self.gps_speed = 0
         self.compass_angle = 0
         self.temperature = 0
@@ -100,6 +103,23 @@ class State:
     def _handle_GPS_speed(self, message):
         logging.info("Recieved boat speed: {}".format(message))
         self.gps_speed = float(message)
+        
+    def _handle_GPS_speed_ver2(self):
+        """
+        This method was written with the possibility in mind that the
+        GPS might not handle speed and thus would need to be calculated
+        on this end.  If this is not the case delete or coment out the
+        function, otherwise change the name to '_handle_GPS_speed'.
+        """
+        deltaLat = self.gps_coordinates[0] - self.prev_gps_coordinates[0]
+        deltaLong = self.gps_coordinates[1] - self.prev_gps_coordinates[1]
+        gammaLat = 1 #distance associated with a change of 1 degree of latitude
+        gammaLong = 1 #distance associated with a change of 1 degree of longitude
+        distance = math.sqrt((deltaLat*gammaLat)**2 + (deltaLong*gammaLong)**2)
+        time = datetime.now()-prev_gps_coordinates[2]
+        speed = distance / time
+        logging.info("Recieved boat speed: {}".format(speed))
+        return speed
 
     def _handle_compass(self, message):
         logging.info("Recieved compass angle: {}".format(message))
@@ -162,3 +182,22 @@ class State:
             self.writer.write(b'A1', autopilot_mode_as_bytes)
         else:
             self.rpi_autopilot_mode = int(message)
+            
+    def Determine_Heading(self, destination):
+        """
+        Given the destination as a tupple containing the lat and long 
+        coordinates of the destination, this func determines the angle of the 
+        desired heading relative to the compass with north at 0 degrees, east
+        at 90 degrees, etc.
+        """
+        FlipAboutX = lambda t, x: 180 - t if x <= 0 else t
+        FlipAboutY = lambda t, y: 360 - t if y <= 0 else t
+    
+        x = 1 * abs(destination[1]-self.gps_coordinates[1])
+        y = 1 * abs(destination[0]-self.gps_coordinates[0])
+    
+        desired_heading = math.atan(y/x)
+        desired_heading = math.degrees(desired_heading)
+        desired_heading = FlipAboutX(desired_heading, destination[1]-self.gps_coordinates[1])
+        desired_heading = FlipAboutY(desired_heading, destination[0]-self.gps_coordinates[0])
+        return desired_heading

@@ -1,31 +1,6 @@
 import logging
-from enum import Enum
 import time
 
-class POS(Enum):
-    irons = 0
-    closeHauld = 1
-    closeReach = 2
-    beamReach = 3
-    broadReach = 4
-    run = 5
-    lee = 6
-
-#The big idea here is that we can use these statics to 
-#loop the gyb() method while tracking if we have crossed 
-#wind or not and check if the gyb command has changed.
-class GybControl:
-    #desired is used to track if the gyb heading has been updated.
-    desired = -1
-    #start is used to determine the starting heading of this gyb command.
-    #Used in gyb() to determine if we have crossed wind or not.
-    start = -1
-gybStatics = GybControl()
-#Constants for lay line.
-#Frequency you want to tune waitForLayLine() with.
-LAYDELAY = 2
-#How close you want to get to the way point before quitting.
-LAYPRECISION = 5
 
 class Controller:
     """
@@ -87,70 +62,30 @@ def startAutomaticControl(state):
             pass
 
         time.sleep(2)
-#Desired Heading tells us the direction we want to be going in.
-def gybe(desiredHeading):
 
-    #If this is the first gyb command, or an updated gyb heading,
-    #then update the gyb statics so we can check crossed wind.
-    if (gybStatics.desired == -1 or desiredHeading != gybStatics.desired):
-        gybStatics.desired = desiredHeading
-        gybStatics.start = getCurrentRelativeHeading()
+def hold_course(self, destination, epsilon):
+    """
+    PLEASE MOVE TO THE APPROPIATE spot IN startAutomaticControl RELATIVE TO
+    OTHER FUNCTIONS.
+    
+    given a destination in the form of a tuple with lat and long coordinates
+    margin of acceptable error for the berring, the adjusts the rudder to hold
+    course as per the "holding course until at location" function on the
+    sailflow.png logic loop on the basecamp.  This function does not return
+    anything.
+    
+    Assumes only small adjustments to rudder are needed.
+    Function does not check wind direction or adjust sail.
+    
+    Assumes compass angle is mapped from North to 0 degrees,
+    east to 90 degrees, etc.  Confirm or edit as appropriate.
+    """
+    desired_heading = state.Determine_Heading(destination)
+        
+    if abs(state.compass_angle - desired_heading) > epsilon:
+        controller.actuate_rudder(90 - (state.compass_angle - desired_heading) / 2) #Assumes back of rudder points port at 0 degrees
 
-    #This tells us the direction we're heading in. Compass coordinates. (?)
-    currentHeading = getCurrentHeading()
-    #This is and enum (?) that gives our current POS.
-    currentPOS = pointOfSail()
-
-    if (currentPOS != POS.run and currentPOS == POS.closeHauld):
-        #Tack and bear off.
-        tack()
-        #paramaters to rudder straight might need tuning.
-        bearOff(desiredHeading, onStarboard(), 0, \
-             (currentHeading < 195 and currentHeading > 180))
+        logging.info("Changing rudder direction to hold course")
     else:
-        #Check if we have crossed wind.
-            #I think that crossing wind means we moved from pointing left of the direction 
-            #of wind to the right of the direction of the wind or vice versa. That could
-            #be completely wrong, I have no idea.
-        if ((getCurrentRelativeHeading() > 180) and (gybStatics.start < 180)) or \
-           ((getCurrentRelativeHeading() < 180) and (gybStatics.start > 180)):
-            if (headingCourse(desiredHeading) == POS.run):
-                #let out sail, straighten out
-                rudderStraight()
-                sailsOut()
-
-            else:
-                #hold rudder, head up
-                headUp(desiredHeading, onStarboard(), 0, 0)
-
-        else:
-            #pull in, tilt 45.
-            #Theres a sails out function but not sails in, so i just jammed this together.
-            if onStarboard():
-                sails(180)
-            else:
-                sails(0)
-            rudderLeeward(45)
-
-
-
-def waitForLayLine():
-    #Get heading at start of path, this is our lay line we 
-    #want to follow.
-    headingPOS = pointOfSail(getCurrentHeading())
-    heading = getCurrentHeading()
-
-    #Until we reach the waypoint, keep correcting course to 
-    #stay on lay line.
-    #We need a way to know if we're there or not. How do I get GPS?
-    while((getCurrentPosition - wayPointPosition) > LAYPRECISION):
-        #Check if we need a correction.
-        if(pointOfSail(getCurrentHeading()) != headingPOS):
-                switchTack(heading)
-        else
-            #Just keep cruisin, do I even need this?
-            sailsOut()
-            rudderStraight()
-        #Wait to refresh.
-        time.sleep(LAYDELAY)
-                      
+        controller.actuate_rudder(90)
+        logging.info("Continuing straight to hold course")
