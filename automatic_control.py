@@ -153,4 +153,32 @@ def waitForLayLine():
             rudderStraight()
         #Wait to refresh.
         time.sleep(LAYDELAY)
+        
+# What happens when tactically advantageous to change course:
+def courseChange():
+    getCurrentHeading()
+    # Is destination/next waypoint upwind?
+    newHeading = headingCourse()
+        if (newHeading==0 or newHeading==1 or newHeading==2):
+        # Yes:
+            # Am I on a close-hauled course?
+            if(newHeading==1):
+                # TACK AND SET TO CLOSE-HAULED COURSE AND WAIT FOR LAYLINE
+                tack()
+                # does the tacking function put it on close-hauled by default?
+            else:
+                # HEAD UP TO CLOSE-HAULED COURSE AND WAIT FOR LAYLINE   
+                headUp()
+                waitForLayLine()
+        else:
+        # No:
+            # Can I stay on this tack?
+            if ((newHeading==3 and abs(newHeading - headingCourse) < 90) or (newHeading==4 and abs(newHeading - headingCourse) < 45) or (newHeading==5 and abs(newHeading - headingCourse) < 5):
+                # Yes:
+                # BEAR OFF AND AIM AT MARK
+                bearoff()
+            else:
+                # NO:
+                # GYBE AND AIM AT MARK 
+                gybe()
                       
