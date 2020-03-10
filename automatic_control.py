@@ -132,7 +132,12 @@ def gybe(desiredHeading):
                 sails(0)
             rudderLeeward(45)
 
-
+def tack():
+    while(): #while the boat is turning i.e. not on the correct path
+        if Speed >= threshold:   #if the boat is going fast enough to succesfully tack
+            headUp() #adjust sails and rudder to perform tack
+            else:
+                #do nothing (or potentially adjust speed in order to reach threshold? - what is threshold?)
 
 def waitForLayLine():
     #Get heading at start of path, this is our lay line we 
