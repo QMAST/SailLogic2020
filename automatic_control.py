@@ -1,4 +1,5 @@
 import logging
+import state
 from enum import Enum
 import time
 
@@ -34,8 +35,43 @@ class Controller:
     Args:
         writer (ThreadsafeSerialWriter): The writer to send the messages too
     """
+    def main():
+        #refresh data
+        updateSensors()
+        startAutomaticControl()
+        #am i tacking?
+        if((!iAmTacking && pointOfSail != POS.irons) || iAmTacking):                      ##TODO?
+            #Adjust sail trim
+            #adjust rudder
+            if we need to tack:
+                tack
+            else:
+                update desired course
+                
+        else if(pointOfSail == POS.irons):
+            bearOff()
+            #yes
+                #Adjust sail trim
+            #no
+                #am i in irons?
+                    #yes
+                        #bear off
+                    #no
+                        #adjust sail trim
+                        
+
+
+    if __name__ == "__main__":
+        main()
     def __init__(self, writer):
         self.writer = writer
+    
+    def updateSensors():
+        state.State._handle_compass(0)
+        state.State._handle_GPS(0)
+        state.State._handle_GPS_speed(0)
+        state.State._handle_wind_speed(0)
+        state.State._handle_windvane(0)
 
     def actuate_winch(self, value):
         assert 0 <= value <= 100
